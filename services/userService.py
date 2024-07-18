@@ -2,10 +2,8 @@ from db.client import get_db_connection
 from models.userModel import User
 import logging
 
-async def update_user(user: User):
-    pass
 
-async def listado():
+async def list_users_Service():
     try:
         conn = await get_db_connection()
         async with conn.transaction():
@@ -17,7 +15,45 @@ async def listado():
         raise
 
 
-async def createTableUsers():
+async def list_user_Service(id: int):
+    try:
+        conn = await get_db_connection()
+        async with conn.transaction():
+            user = await conn.fetchrow("SELECT * FROM users WHERE id = $1", id)
+            logging.info(f"User fetched: {user}")
+            return user
+    except Exception as e:
+        logging.error(e)
+        raise
+
+
+async def insert_user_Service(user: User):
+    try:
+        conn = await get_db_connection()
+        async with conn.transaction():
+            result = await conn.fetchrow(
+                """
+                INSERT INTO users (name, last_name, sucursal, marca)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
+                """,
+                user.name,
+                user.last_name,
+                user.sucursal,
+                user.marca,
+            )
+            user_id = result["id"]
+            logging.info("User inserted successfully")
+            return {**user.dict(), "id": user_id}
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return None
+    finally:
+        if conn:
+            await conn.close()
+
+
+async def create_tableUsers_Service():
     try:
         conn = await get_db_connection()
         async with conn.transaction():
@@ -42,40 +78,73 @@ async def createTableUsers():
             await conn.close()
 
 
-
-async def dropTableUser():
+async def update_user_Service(id: int, user: User):
     try:
         conn = await get_db_connection()
         async with conn.transaction():
-            await conn.execute("""DROP TABLE IF EXISTS test_table""")
-            logging.info("Table dropped successfully")
+            existing_user = await list_user_Service(id)
+
+            if existing_user is None:
+                logging.error(f"User with id {id} does not exist")
+                return False
+
+            await conn.execute(
+                """
+                UPDATE users
+                SET name = $1, last_name = $2, sucursal = $3, marca = $4
+                WHERE id = $5
+                """,
+                user.name,
+                user.last_name,
+                user.sucursal,
+                user.marca,
+                id,
+            )
+
+            logging.info(f"User with id {id} updated successfully")
             return True
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logging.error(f"An error occurred while updating user with id {id}: {e}")
         return False
     finally:
         if conn:
             await conn.close()
 
 
-async def insertUser(user: User):
+async def delete_user_Service(id: int):
     try:
         conn = await get_db_connection()
         async with conn.transaction():
-            result = await conn.fetchrow(
-                """
-                INSERT INTO users (name, last_name, sucursal, marca)
-                VALUES ($1, $2, $3, $4)
-                RETURNING id
-                """,
-                user.name, user.last_name, user.sucursal, user.marca
-            )
-            user_id = result['id']
-            logging.info("User inserted successfully")
-            return {**user.dict(), "id": user_id}
+            user = await list_user_Service(id)
+
+            if user is None:
+                logging.error(f"User with id {id} does not exist")
+                return False
+
+            await conn.execute("DELETE FROM users WHERE id = $1", id)
+            logging.info(f"User with id {id} deleted successfully")
+            return True
+    except Exception as e:
+        logging.error(f"An error occurred while deleting user with id {id}: {e}")
+        return False
+    finally:
+        if conn:
+            await conn.close()
+
+
+# Servicios tabla Users
+
+
+async def drop_tableUsers_Service():
+    try:
+        conn = await get_db_connection()
+        async with conn.transaction():
+            await conn.execute("""DROP TABLE IF EXISTS users""")
+            logging.info("Table dropped successfully")
+            return True
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-        return None
+        return False
     finally:
         if conn:
             await conn.close()

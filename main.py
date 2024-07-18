@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from api import userRouter
 
 
-
 app = FastAPI(
     title="Motoring Innovation",
     version="1.0",
