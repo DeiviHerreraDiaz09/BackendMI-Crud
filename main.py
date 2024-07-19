@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from api import userRouter
 
+
 app = FastAPI(
     title="Motoring Innovation",
     version="1.0",
@@ -10,12 +11,7 @@ app = FastAPI(
         "url": "https://monitoringinnovation.com/",
         "email": "desarrollo@gpscontrol.co",
     },
-    docs_url=None, 
-    redoc_url=None  
 )
 
-app.include_router(userRouter.router)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+app.include_router(userRouter.router)
