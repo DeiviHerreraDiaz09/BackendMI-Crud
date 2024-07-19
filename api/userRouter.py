@@ -48,6 +48,21 @@ async def list_user(id: int):
         )
 
 
+@router.post("/create_table")
+async def create_table():
+    try:
+        tableUser = await create_tableUsers_Service()
+        if not tableUser:
+            return {"message": "Table creation failed"}
+        return {"message": "Table creation successful"}
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Table creation failed",
+        )
+
+
 @router.post("/")
 async def create_user(user: User):
     try:
@@ -86,6 +101,20 @@ async def update_user(id: int, user: User):
         )
 
 
+@router.delete("/table")
+async def delete_table():
+    try:
+        tables = await drop_tableUsers_Service()
+        if tables is None:
+            raise HTTPException(
+                status_code=404, detail="Table not found or already deleted"
+            )
+        return {"message": "Table deletion successful"}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.delete("/{id}")
 async def delete_user(id: int):
     try:
@@ -104,35 +133,3 @@ async def delete_user(id: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
-
-
-# ajustes de tablas
-
-
-@router.post("/create_table")
-async def create_table():
-    try:
-        tableUser = await create_tableUsers_Service()
-        if not tableUser:
-            return {"message": "Table creation failed"}
-        return {"message": "Table creation successful"}
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Table creation failed",
-        )
-
-
-@router.delete("/delete")
-async def delete_table():
-    try:
-        tables = await drop_tableUsers_Service()
-        if tables is None:
-            raise HTTPException(
-                status_code=404, detail="Table not found or already deleted"
-            )
-        return {"message": "Table deletion successful"}
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Internal server error")
