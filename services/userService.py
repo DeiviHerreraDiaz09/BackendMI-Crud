@@ -37,7 +37,7 @@ async def insert_user_Service(user: User):
                 VALUES ($1, $2, $3)
                 RETURNING id
                 """,
-                user.fullname,
+                user.fullName, 
                 user.sucursal,
                 user.marca,
             )
@@ -50,6 +50,7 @@ async def insert_user_Service(user: User):
     finally:
         if conn:
             await conn.close()
+
 
 
 async def create_tableUsers_Service():
@@ -92,7 +93,7 @@ async def update_user_Service(id: int, user: User):
                 SET fullname = $1, sucursal = $2, marca = $3
                 WHERE id = $4
                 """,
-                user.fullname,
+                user.fullName,
                 user.sucursal,
                 user.marca,
                 id,
