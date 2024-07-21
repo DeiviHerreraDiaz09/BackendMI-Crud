@@ -33,12 +33,11 @@ async def insert_user_Service(user: User):
         async with conn.transaction():
             result = await conn.fetchrow(
                 """
-                INSERT INTO users (name, last_name, sucursal, marca)
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO users (fullname, sucursal, marca)
+                VALUES ($1, $2, $3)
                 RETURNING id
                 """,
-                user.name,
-                user.last_name,
+                user.fullname,
                 user.sucursal,
                 user.marca,
             )
@@ -61,8 +60,7 @@ async def create_tableUsers_Service():
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    last_name TEXT NOT NULL,
+                    fullname TEXT NOT NULL,
                     sucursal TEXT NOT NULL,
                     marca TEXT NOT NULL
                 );
@@ -91,11 +89,10 @@ async def update_user_Service(id: int, user: User):
             await conn.execute(
                 """
                 UPDATE users
-                SET name = $1, last_name = $2, sucursal = $3, marca = $4
-                WHERE id = $5
+                SET fullname = $1, sucursal = $2, marca = $3
+                WHERE id = $4
                 """,
-                user.name,
-                user.last_name,
+                user.fullname,
                 user.sucursal,
                 user.marca,
                 id,
@@ -130,9 +127,6 @@ async def delete_user_Service(id: int):
     finally:
         if conn:
             await conn.close()
-
-
-# Servicios tabla Users
 
 
 async def drop_tableUsers_Service():
